@@ -1,0 +1,132 @@
+\documentclass{article}
+
+% from CS 231 hw
+\usepackage[parfill]{parskip}
+\usepackage{times}
+\usepackage{bcprules}
+\usepackage{ebproof}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage{verbatim}
+\usepackage{verbatimbox}
+\usepackage{listings}
+\usepackage{graphicx}\usepackage{graphics}
+\newcommand{\step}[2]{{\tt #1} $\longrightarrow$ {\tt #2}}
+%% \newcommand{\inferrule}[3]{\infrule[#1]{\mbox{#2}}{\mbox{#3}}}
+\newcommand{\inferax}[2]{\infrule[#1]{\mbox{}}{\mbox{#2}}}
+
+% from enumo paper
+\usepackage{balance}
+\usepackage{pifont}
+\usepackage{wrapfig}
+\usepackage{hyperref}
+\usepackage{fancyvrb}
+\usepackage{xspace}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{semantic}
+\usepackage{listings}
+\usepackage{array}
+\usepackage{fancyvrb}
+\usepackage{mathpartir}
+\usepackage{stmaryrd}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{syntax, etoolbox}
+\usepackage{tikz}
+\usepackage{proof}
+\usepackage{color}
+\usepackage{mathtools}
+\usepackage{adjustbox}
+\usepackage{multirow}
+\usepackage{bbding}
+\usepackage{soul} % for \hl
+\usepackage{multirow}
+\usepackage{fontawesome}
+
+\begin{document}
+
+\include{macros}
+
+\renewcommand\denote[1]{\ensuremath{\left\llbracket #1 \right\rrbracket}}
+\newcommand\set[2]{\ensuremath{\left\{#1 \hspace{3pt} \left\vert \hspace{3pt} #2 \right.\right\}}}
+\newcommand\plugsexp{\ensuremath{\mathsf{plug\_sexp}}}
+
+\inferrule{T-While}{\texttt{$\Gamma$ $\vdash$ t$_1$ : Bool} \andalso \texttt{$\Gamma$ $\vdash$ t$_2$ : True}}{\texttt{$\Gamma$ $\vdash$ while t$_1$ do t$_2$: True}}
+
+\begin{figure}%{\linewidth}
+  \begin{minipage}[t]{0.45\linewidth}
+    \begin{grammar}
+    <workload> ::=  Set <s-exp>*
+      \alt Union <workload>*
+      \alt Filter <filter> <workload>
+      \alt Plug <workload> <string> <workload>
+
+    <s-exp> ::=  Atom <string> \alt List <s-exp>+
+
+    \end{grammar}
+  \end{minipage}\hfill%
+  \begin{minipage}[t]{0.5\linewidth}
+    \begin{grammar}
+
+    <filter> ::=
+      MetricLt <metric> <\N>
+      \alt MetricEq <metric> <\N>
+      \alt Contains <pattern>
+      \alt Excludes <pattern>
+      \alt Canon <string>+
+      \alt And <filter>+ | Or <filter>+ | Not <filter>
+
+    <metric> ::= Atoms | List | Depth
+    \end{grammar}%
+    \end{minipage}%
+  \caption{workload abstract syntax.}
+\end{figure}
+
+\begin{figure}%{\linewidth}
+  \begin{align*}
+    \denote{ \mathsf{Set} ~ ts } &= ts
+    & % \\
+    \denote{ \mathsf{Filter} ~ \mathit{filter} ~ \W } &=
+    \set{t \in \denote{ \W }}{\denote{ \mathit{filter} } (t) = true}
+    \\
+    \denote{ \mathsf{Union} ~ \W_1 ~ \W_2 } &=
+    \denote{ \W_1 }~\cup~\denote{ \W_2 } \hspace{8mm}
+    & % \\
+    \denote{ \mathsf{Plug} ~ \W_1 ~ \mathit{tgt} ~ \W_2 } &=
+      \bigcup_{e \in \denote{\W_1}}
+      \denote{ \plugsexp ~ e ~ \mathit{tgt} ~ \W_2 }
+  \end{align*}
+  \begin{align*}
+    \denote{ \plugsexp ~ (Atom ~ s) ~ \mathit{s} ~ \W } &=
+    \denote{ \W }
+    \\
+    \denote{ \plugsexp ~ (Atom ~ s) ~ \mathit{tgt} ~ \W } &=
+    \{Atom ~ s\} ~\mathsf{when} ~ s \neq \mathit{tgt}
+    \\
+    \denote{ \plugsexp ~ (List ~ s_1 ~ \ldots ~ s_n) ~ \mathit{tgt} ~ \W } &=
+    \set{List ~ t_1 ~ \ldots ~ t_n}{t_i \in \denote{ \plugsexp ~ s_i ~ \mathit{tgt} ~ \W }}
+  \end{align*}
+  \caption{\enumo workload semantics.}
+  \label{fig:denote-workload}
+\end{figure}
+
+\begin{figure}%{\linewidth}
+  \begin{align*}
+    \denote{\mathsf{MetricLt} ~ M ~ n}(t) &= \denote{ M } (t) < n  &
+    \denote{\mathsf{Contains} ~ p}(t) &=
+      \exists \sigma, \sigma(p) \in \mathsf{subterms}(t) \\
+      % includes(t, p) \\
+    \denote{\mathsf{MetricEq} ~ M ~ n}(t) &= \denote{ M } (t) = n  &
+    \denote{\mathsf{Canon} ~ \vec{a} ~ }(t) &= canon(\vec{a}, t) == t
+  \end{align*}
+\end{figure}
+
+
+
+\end{document}
