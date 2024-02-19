@@ -85,7 +85,7 @@ A state is pair $(M, L)$, containing memory and a print log.
 }}
 
 \inferrule{E-IfTrue}{
-  \bigstep{\strip{c}{\targ}{\sigma}}{\spair{true}{\sigma'}} \andalso
+  \bigstep{\strip{c}{\targ}{\sigma}}{\spair{\top}{\sigma'}} \andalso
   \bigstep{\strip{t}{\targ}{\sigma'}}{\spair{v}{\sigma''}}
 }
 {\bigstep{
@@ -95,7 +95,7 @@ A state is pair $(M, L)$, containing memory and a print log.
 }}
 
 \inferrule{E-IfFalse}{
-  \bigstep{\strip{c}{\targ}{\sigma}}{\spair{false}{\sigma'}} \andalso
+  \bigstep{\strip{c}{\targ}{\sigma}}{\spair{\bot}{\sigma'}} \andalso
   \bigstep{\strip{e}{\targ}{\sigma'}}{\spair{v}{\sigma''}}
 }
 {\bigstep{
@@ -125,12 +125,12 @@ A state is pair $(M, L)$, containing memory and a print log.
 
 \inferrule{E-Let}{
   \bigstep{\strip{i}{\targ}{\sigma}}{\spair{\targ'}{\sigma'}} \andalso
-  \bigstep{\strip{o}{\targ'}{\sigma'}}{\spair{o}{\sigma''}}
+  \bigstep{\strip{o}{\targ'}{\sigma'}}{\spair{v}{\sigma''}}
 }
 {\bigstep{
   \strip{\text{Let }i\ o}{\targ}{\sigma}
 }{
-  \spair{v_o}{\sigma''}
+  \spair{v}{\sigma''}
 }}
 
 \inferrule{E-Print}{
@@ -182,16 +182,29 @@ A state is pair $(M, L)$, containing memory and a print log.
     \spair{v_1\texttt{ ++ }v_2}{\sigma''}
 }}
 
-%% \inferrule{E-DoWhileTrue}{
-%%   \bigstep{\strip{i}{\targ}{\sigma}}{\spair{\targ'}{\sigma'}} \andalso
-%%   \bigstep{\strip{o}{\targ'}{\sigma'}}{\spair{o}{\sigma''}}
-%% }
-%%           {\bigstep{
-%%               \strip{\text{Let }i\ o}{\targ}{\sigma}
-%%             }{
-%%               \spair{v_o}{\sigma''}
-%%           }}
 
+
+\inferrule{E-DoWhileFalse}{
+  \bigstep{\strip{e_{in}}{\targ}{\sigma}}{\spair{\targ'}{\sigma'}} \andalso
+  \bigstep{\strip{e_{pred\_out}}{\targ'}{\sigma'}}{\spair{[\bot, v]}{\sigma''}}
+}
+{\bigstep{
+    \strip{\text{DoWhile }e_{in}\ e_{pred\_out}}{\targ}{\sigma}
+  }{
+    \spair{v}{\sigma''}
+}}
+
+
+\inferrule{E-DoWhileTrue}{
+  \bigstep{\strip{e_{in}}{\targ}{\sigma}}{\spair{\targ'}{\sigma'}} \andalso
+  \bigstep{\strip{e_{pred\_out}}{\targ'}{\sigma'}}{\spair{[\top, \targ'']}{\sigma''}} \andalso
+  \bigstep{\strip{\text{DoWhile } e_{in}\ e_{pred\_out}}{\targ''}{\sigma''}}{\spair{v}{\sigma'''}}
+}
+{\bigstep{
+    \strip{\text{DoWhile }e_{in}\ e_{pred\_out}}{\targ}{\sigma}
+  }{
+    \spair{v}{\sigma'''}
+}}
 
 
 
