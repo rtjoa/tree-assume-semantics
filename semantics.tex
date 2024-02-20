@@ -1,14 +1,11 @@
-
 \begin{figure}%{\linewidth}
   \begin{minipage}[t]{0.45\linewidth}
     \begin{grammar}
-
       <basetype> ::= IntT \alt BoolT
 
       <type> ::= <basetype> \alt PointerT <type> \alt TupleT <basetype>*
 
-      <bool> ::= True \alt False
-
+      <bool> ::= $\top$ \alt $\bot$
 
       <order> ::= Parallel \alt Sequential
 
@@ -19,9 +16,6 @@
       \alt InFunc <function>
       \alt InSwitch <\N> <expr>
       \alt InIf <bool> <expr>
-
-
-
     \end{grammar}
   \end{minipage}\hfill%
   \begin{minipage}[t]{0.5\linewidth}
@@ -37,7 +31,7 @@
       \alt And <expr> <expr>
       \alt Or <expr> <expr>
       \alt Write <expr> <expr>
-      %% \alt PtrAdd <expr> <expr>
+      \alt PtrAdd <expr> <expr>
       \alt Not <expr>
       \alt Print <expr>
       \alt Load <expr>
@@ -152,13 +146,13 @@ A state is pair $(M, L)$, containing memory and a print log.
 }}
 
 \inferrule{E-Alloc}{
-  \bigstep{\strip{e}{\targ}{\sigma}}{\spair{v}{(M, L)}} \andalso
-  $p$ = malloc(sizeof($\tau$))
+  \bigstep{\strip{e}{\targ}{\sigma}}{\spair{n}{(M, L)}} \andalso
+  $(M', p) = \operatorname{malloc}(M, n * \operatorname{sizeof}(\tau))$
 }
 {\bigstep{
   \strip{\text{Alloc }e\ \tau}{\targ}{\sigma}
 }{
-  \spair{p}{(M[p \to v], L)}
+  \spair{p}{(M', L)}
 }}
 
 \inferrule{E-Store}{
@@ -215,7 +209,6 @@ A state is pair $(M, L)$, containing memory and a print log.
   }{
     \spair{v}{\sigma'''}
 }}
-
 
 
   %% \caption{expr big-step semantics.}
