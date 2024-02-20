@@ -70,7 +70,7 @@
 %% \begin{figure}
 \newpage
 
-\bigstep{\strip{e}{\targ}{\tmem}}{\spair{v}{\tmem'}} means that with argument $\targ$ and state $\tmem$, $e$ evaluates to $v$ and the resulting state is $\tmem'$.
+\bigstep{\strip{e}{\targ}{\tmem}}{\spair{v}{\tmem'}} means: with argument $\targ$ and state $\tmem$, $e$ evaluates to $v$ and the resulting state is $\tmem'$.
 
 A state is pair $(M, L)$, containing memory and a print log.
 
@@ -149,6 +149,16 @@ A state is pair $(M, L)$, containing memory and a print log.
   \strip{\text{Load }e}{\targ}{\sigma}
 }{
   \spair{M[v]}{(M, L)}
+}}
+
+\inferrule{E-Alloc}{
+  \bigstep{\strip{e}{\targ}{\sigma}}{\spair{v}{(M, L)}} \andalso
+  $p$ = malloc(sizeof($\tau$))
+}
+{\bigstep{
+  \strip{\text{Alloc }e\ \tau}{\targ}{\sigma}
+}{
+  \spair{p}{(M[p \to v], L)}
 }}
 
 \inferrule{E-Store}{
