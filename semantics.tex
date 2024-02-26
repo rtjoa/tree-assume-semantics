@@ -1,4 +1,3 @@
-
 \newcommand{\inferax}[2]{\infrule[#1]{\mbox{}}{\mbox{$#2$}}}
 \renewcommand{\inferrule}[3]{\infrule[#1]{\mbox{$#2$}}{\mbox{$#3$}}}
 \newcommand{\bigstep}[2]{#1 \Downarrow #2}
@@ -145,19 +144,36 @@ $\operatorname{malloc}$ takes a state and number of bytes $n$, finds a contiguou
   %% \\ \mathrm{undefined} & \text{otherwise}
 \end{cases}\\
 %
+\denotef{\bop{Assume}{(\bop{AfterWrite}{e_p}{e_d})}{e}}{\targ,\tmem} &\eqdef
+\begin{cases}
+  \denotef{e}{\targ,\tmem} & \exists \targ', \tmem' . \; \denotefs{\bop{Write}{e_p}{e_d}}{\targ',\tmem'} = \tmem
+  %% \\ \mathrm{undefined} & \text{otherwise}
+\end{cases}\\
+%
+%% \operatorname{possibleargs}(e_{in},e_{po}) &\eqdef \{\denotefv{e_{in}}{\targ,\tmem} \ |\  \targ \in \mathrm{Value}, \tmem \in \mathrm{State} \}\\
+%% \denotef{\bop{Assume}{(\bop{InLoop}{e_{in}}{e_{po}})}{e}}{\targ,\tmem} &\eqdef
+%% \begin{cases}
+%%   \denotef{e}{\targ,\tmem} &
+%%     \begin{aligned}
+%%       &\exists \targ', \tmem' . \\
+%%       &\denotefv{e_{in}}{\targ',\tmem'} = \targ \; \lor\\
+%%       &(\mathrm{let}\ (v_p, v_o) = \denotefv{e_{po}}{\targ',\tmem'} \mathrm{in}\\
+%%       &v_p = \top \land\\
+%%       & (v_o, \tmem') \in \operatorname{domain}(\denote{\bop{Assume}{(\bop{InLoop}{\mathrm{Arg}}{e_{po}})}{e}}))
+%%     \end{aligned}
+%%   %% \\ \mathrm{undefined} & \text{otherwise}
+%% \end{cases}\\
+%% \text{\color{gray}alternate version:}&\\
 \denotef{\bop{Assume}{(\bop{InLoop}{e_{in}}{e_{po}})}{e}}{\targ,\tmem} &\eqdef
 \begin{cases}
   \denotef{e}{\targ,\tmem} &
     \begin{aligned}
-      &\exists \targ', \tmem' . \; \denotefv{e_{in}}{\targ',\tmem'} = \targ\\
-      &\lor \denotefv{\bop{Assume}{(\bop{InLoop}{e_{in}}{e_{po}})}{e}}{\targ',\tmem'} = \targ
+      &\exists \targ', \tmem' . \\
+      &\denotefv{e_{in}}{\targ',\tmem'} = \targ \; \lor\\
+      &(\mathrm{let}\ (v_p, v_o) = \denotefv{e_{po}}{\targ',\tmem'} \mathrm{in}\\
+      &v_p = \top \land\\
+      & (v_o, \tmem') \in \operatorname{domain}(\denote{\bop{Assume}{(\bop{InLoop}{\mathrm{Arg}}{e_{po}})}{e}}))
     \end{aligned}
-  %% \\ \mathrm{undefined} & \text{otherwise}
-\end{cases}\\
-%
-\denotef{\bop{Assume}{(\bop{AfterWrite}{e_p}{e_d})}{e}}{\targ,\tmem} &\eqdef
-\begin{cases}
-  \denotef{e}{\targ,\tmem} & \exists \targ', \tmem' . \; \denotefs{\bop{Write}{e_p}{e_d}}{\targ',\tmem'} = \tmem
   %% \\ \mathrm{undefined} & \text{otherwise}
 \end{cases}\\
 \end{align*}
