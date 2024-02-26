@@ -88,9 +88,16 @@ $\operatorname{malloc}$ takes a state and number of bytes $n$, finds a contiguou
 %
 \denotef{\bop{Switch}{e_{pred}}{\Vec{e}\ }}{\targ,\tmem} &\eqdef
   \denotef{\Vec{e}\ [\denotefv{e_{pred}}{\targ,\tmem}]}{\targ,\denotefs{e_{pred}}{\targ,\tmem}}\\
-%
-\denote{\bop{Let}{e_{in}}{e_{out}}} &\eqdef
-  \denote{e_{out}} \circ \denote{e_{in}}\\
+\begin{aligned}
+\denote{\bop{Let}{e_{in}}{e_{out}}}&\\
+\denotef{\bop{Let}{e_{in}}{e_{out}}}{\targ,\tmem}&
+\end{aligned}
+\ &\begin{aligned}
+  &\eqdef \denote{e_{out}} \circ \denote{e_{in}}
+  &&\text{\color{gray}(point-free version)}\\
+  &\eqdef \denotef{e_{out}}{\denotef{e_{in}}{\targ,\tmem}}
+  &&\text{\color{gray}($\eta$-expanded for clarity)}\\
+\end{aligned}\\
 %
 \denotefv{\uop{Print}{e}}{\targ,\tmem} &\eqdef []\\
 \denotefs{\uop{Print}{e}}{\targ,\tmem} &\eqdef
@@ -116,7 +123,7 @@ $\operatorname{malloc}$ takes a state and number of bytes $n$, finds a contiguou
 \denotestate{\uop{Single}e} &\eqdef \denotestate{e} \\
 %
 \denotefv{\bop{Concat\ Sequential}{e_1}{e_2}}{\targ,\tmem} &\eqdef
-\append{\denotefv{e_1}{\targ,\tmem}}{\denotefv{e_2}{\targ,\denotefs{e_2}{\targ,\tmem}}}\\
+\append{\denotefv{e_1}{\targ,\tmem}}{\denotefv{e_2}{\targ,\denotefs{e_1}{\targ,\tmem}}}\\
 %
 \denotefs{\bop{Concat\ Sequential}{e_1}{e_2}}{\targ,\tmem} &\eqdef
 \denotefs{e_2}{\targ,\denotefs{e_1}{\targ,\tmem}}\\
