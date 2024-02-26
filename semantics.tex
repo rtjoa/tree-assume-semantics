@@ -16,6 +16,7 @@
       \alt InFunc <function>
       \alt InSwitch <\N> <expr>
       \alt InIf <bool> <expr>
+      \alt AfterWrite <expr> <expr>
     \end{grammar}
   \end{minipage}\hfill%
   \begin{minipage}[t]{0.5\linewidth}
@@ -34,7 +35,7 @@
       \alt PtrAdd <expr> <expr>
       \alt Not <expr>
       \alt Print <expr>
-      \alt Load <expr>
+      \alt Read <expr>
       \alt Get <expr> <\N>
       \alt Alloc <expr> <type>
       \alt Call <function> <expr>
@@ -50,209 +51,165 @@
   \caption{expr abstract syntax.}
 \end{figure}
 
-\renewcommand{\inferrule}[3]{\infrule[#1]{\mbox{#2}}{\mbox{#3}}}
-\newcommand{\bigstep}[2]{#1 $\Downarrow$ #2}
-\newcommand{\ang}[1]{$\langle #1 \rangle$}
+\newcommand{\inferax}[2]{\infrule[#1]{\mbox{}}{\mbox{$#2$}}}
+\renewcommand{\inferrule}[3]{\infrule[#1]{\mbox{$#2$}}{\mbox{$#3$}}}
+\newcommand{\bigstep}[2]{#1 \Downarrow #2}
+\newcommand{\ang}[1]{\langle #1 \rangle}
 \newcommand{\spair}[2]{\ang{#1, #2}}
 \newcommand{\strip}[3]{\ang{#1, #2, #3}}
 
 \newcommand{\targ}{\alpha}
 \newcommand{\tmem}{\sigma}
 
+\newcommand{\uop}[2]{\operatorname{#1}\ #2}
+\newcommand{\bop}[3]{\operatorname{#1}\ #2\ #3}
+\newcommand{\trop}[4]{\operatorname{#1}\ #2\ #3\ #4}
+
+% (expression, arg, state) to (value, state)
+\newcommand{\easvs}[5]{\bigstep{\strip{#1}{#2}{#3}}{\spair{#4}{#5}}}
+
+% "definition" version of easvs
+\newcommand{\easvsd}[5]{\easvs{#1}{#2}{#3}{#4}{#5}}
+
+\newcommand{\append}[2]{#1\ \texttt{+\hspace{-1pt}+}\ #2}
+
+\newcommand{\semanticsrules}{
+
+\inferax{E-Num}{\easvsd{\uop{Num}{n}}{\targ}{\tmem}{n}{\tmem}}
+
+\inferax{E-Bool}{\easvsd{\uop{Bool}{b}}{\targ}{\tmem}{b}{\tmem}}
+
+\inferrule{E-Add}{
+  \easvs{e_1}{\targ}{\tmem}{v_1}{\tmem'} \andalso
+  \easvs{e_2}{\targ}{\tmem'}{v_2}{\tmem''}}
+{\easvsd
+  {\bop{Add}{e_1}{e_2}}{\targ}{\tmem}
+  {v_1 + v_2}{\tmem''}}
+
+\inferrule{E-IfTrue}{
+  \easvs{e_c}{\targ}{\tmem}{\top}{\tmem'} \andalso
+  \easvs{e_t}{\targ}{\tmem'}{v_t}{\tmem''}}
+{\easvsd
+  {\trop{If}{e_c}{e_t}{e_e}}{\targ}{\tmem}
+  {v_t}{\tmem''}}
+
+\inferrule{E-IfFalse}{
+  \easvs{e_c}{\targ}{\tmem}{\bot}{\tmem'} \andalso
+  \easvs{e_e}{\targ}{\tmem'}{v_e}{\tmem''}}
+{\easvsd
+  {\trop{If}{e_c}{e_t}{e_e}}{\targ}{\tmem}
+  {v_e}{\tmem''}}
+
+\inferrule{E-Switch}{
+  \easvs{e_{pred}}{\targ}{\tmem}{i}{\sigma'} \andalso
+  \easvs{e_i}{\targ}{\sigma'}{v}{\sigma''}}
+{\easvsd
+  {\bop{Switch}{e_{pred}}{(e_1, \dots, e_n)}}{\targ}{\tmem}
+  {v}{\tmem''}}
+
+\inferrule{E-Let}{
+  \easvs{e_{in}}{\targ}{\tmem}{v_{in}}{\tmem'} \andalso
+  \easvs{e_{out}}{v_{in}}{\tmem'}{v_{out}}{\tmem''}}
+{\easvsd
+  {\bop{Let}{e_{in}}{e_{out}}}{\targ}{\tmem}
+  {v_{out}}{\tmem''}}
+
+\inferrule{E-Print}{
+  \easvs{e}{\targ}{\tmem}{v}{(M,L)}}
+{\easvsd
+  {\uop{Print}{e}}{\targ}{\tmem}
+  {[]}{(M,\append{L}{v})}}
+
+\inferrule{E-Read}{
+  \easvs{e}{\targ}{\tmem}{v}{(M,L)}}
+{\easvsd
+  {\uop{Read}{e}}{\targ}{\tmem}
+  {M[v]}{(M,L)}}
+
+\inferrule{E-Alloc}{
+  \easvs{e}{\targ}{\tmem}{n}{(M,L)} \andalso
+  (M', p) = \operatorname{malloc}(M, n * \operatorname{sizeof}(\tau))}
+{\easvsd
+  {\bop{Alloc}{e}{\tau}}{\targ}{\tmem}
+  {p}{(M',L)}}
+
+\inferrule{E-Write}{
+  \easvs{e_p}{\targ}{\tmem}{v_p}{\tmem'} \andalso
+  \easvs{e_d}{\targ}{\tmem'}{v_d}{(M,L)}}
+{\easvsd
+  {\bop{Write}{e_p}{e_d}}{\targ}{\tmem}
+  {[]}{(M[v_p\to v_d], L)}}
+
+\inferrule{E-Single}{
+  \easvs{e}{\targ}{\tmem}{v}{\tmem'}}
+{\easvsd
+  {\uop{Single}{e}}{\targ}{\tmem}
+  {[v]}{\tmem'}}
+
+\inferrule{E-ConcatSeq}{
+  \easvs{e_1}{\targ}{\tmem}{v_1}{\tmem'} \andalso
+  \easvs{e_2}{\targ}{\tmem'}{v_2}{\tmem''}}
+{\easvsd
+  {\bop{Concat\ Sequential}{e_1}{e_2}}{\targ}{\tmem}
+  {\append{v_1}{v_2}}{\tmem''}}
+
+\inferrule{E-DoWhileFalse}{
+  \easvs{e_{in}}{\targ}{\tmem}{\targ'}{\tmem'} \andalso
+  \easvs{e_{pred\_out}}{\targ'}{\tmem'}{[\bot,v]}{\tmem''}}
+{\easvsd
+  {\bop{DoWhile}{e_{in}}{e_{out}}}{\targ}{\tmem}
+  {v}{\tmem''}}
+
+\inferrule{E-DoWhileTrue}{
+  \easvs{e_{in}}{\targ}{\tmem}{\targ'}{\tmem'} \andalso
+  \easvs{e_{pred\_out}}{\targ'}{\tmem'}{[\top,\targ'']}{\tmem''} \andalso
+  \easvs{\bop{DoWhile}{e_{in}}{e_{pred\_out}}}{\targ''}{\tmem''}{v}{\tmem'''}}
+{\easvsd
+  {\bop{DoWhile}{e_{in}}{e_{pred\_out}}}{\targ}{\tmem}
+  {v}{\tmem'''}}
+
+\inferrule{E-AssumeInLet}{
+  \easvs{e}{\targ}{\tmem}{v}{\tmem'} \andalso
+  \exists\ \targ_2, \tmem_2, \tmem_3 .\;
+    \easvs{e_{in}}{\targ_2}{\tmem_2}{\targ}{\tmem_3}}
+{\easvsd
+  {\bop{Assume}{(\uop{InLet}{e_{in}})}{e}}{\targ}{\tmem}
+  {v}{\tmem'}}
+
+\inferrule{E-AssumeAfterWrite}{
+  \easvs{e}{\targ}{\tmem}{v}{\tmem'} \andalso
+  \exists\ \targ_2, v_2, \tmem_2 .\;
+    \easvs{\bop{Write}{e_p}{e_d}}{\targ_2}{\tmem_2}{v_2}{\tmem_3}}
+{\easvsd
+  {\bop{Assume}{(\bop{AfterWrite}{e_p}{e_d})}{e}}{\targ}{\tmem}
+  {v}{\tmem'}}
+
+
+}
+
 
 \clearpage
-%% \begin{figure}
 \newpage
 
-\bigstep{\strip{e}{\targ}{\tmem}}{\spair{v}{\tmem'}} means: with argument $\targ$ and state $\tmem$, $e$ evaluates to $v$ and the resulting state is $\tmem'$.
+\subsection*{Big-step operational semantics}
+
+$\bigstep{\strip{e}{\targ}{\tmem}}{\spair{v}{\tmem'}}$ means: with argument $\targ$ and state $\tmem$, $e$ evaluates to $v$ and the resulting state is $\tmem'$.
 
 A state is pair $(M, L)$, containing memory and a print log.
 
-\inferrule{E-Add}{
-  \bigstep{\strip{e_1}{\targ}{\sigma}}{\spair{v_1}{\sigma'}} \andalso
-  \bigstep{\strip{e_2}{\targ}{\sigma'}}{\spair{v_2}{\sigma''}}
-}
-{\bigstep{
-  \strip{\text{Add }e_1\ e_2}{\targ}{\sigma}
-}{
-  \spair{v_1 + v_2}{\sigma''}
-}}
+\semanticsrules
 
-\inferrule{E-IfTrue}{
-  \bigstep{\strip{c}{\targ}{\sigma}}{\spair{\top}{\sigma'}} \andalso
-  \bigstep{\strip{t}{\targ}{\sigma'}}{\spair{v}{\sigma''}}
-}
-{\bigstep{
-  \spair{\text{If }c\ t\ e}{\sigma}
-}{
-  \spair{v}{\sigma''}
-}}
+\newpage
 
-\inferrule{E-IfFalse}{
-  \bigstep{\strip{c}{\targ}{\sigma}}{\spair{\bot}{\sigma'}} \andalso
-  \bigstep{\strip{e}{\targ}{\sigma'}}{\spair{v}{\sigma''}}
-}
-{\bigstep{
-  \spair{\text{If }c\ t\ e}{\sigma}
-}{
-  \spair{v}{\sigma''}
-}}
+\subsection*{Denotational semantics}
 
-\inferrule{E-Switch}{
-  \bigstep{\strip{k}{\targ}{\sigma}}{\spair{i}{\sigma'}} \andalso
-  \bigstep{\strip{e_i}{\targ}{\sigma'}}{\spair{v}{\sigma''}}
-}
-{\bigstep{
-    \strip{\text{Switch }k\ (e_1, \dots, e_n)}{\targ}{\sigma}
-  }{
-    \spair{v}{\sigma''}
-}}
+\renewcommand{\denote}[1]{\left\llbracket #1 \right\rrbracket}
+\newcommand{\denotef}[2]{\denote{#1}\left(#2\right)}
 
-\inferrule{E-Assume}{
-  \bigstep{\strip{e}{\targ}{\sigma}}{\spair{v}{\sigma'}}
-}
-{\bigstep{
-  \strip{\text{Assume }e\ a}{\targ}{\sigma}
-}{
-  \spair{v}{\sigma'}
-}}
+% (expression, arg, state) to (value, state)
+\renewcommand{\easvs}[5]{\denotef{#1}{#2, #3} = (#4, #5)}
+\renewcommand{\easvsd}[5]{\denotef{#1}{#2, #3} \triangleq (#4, #5)}
 
-\inferrule{E-Let}{
-  \bigstep{\strip{i}{\targ}{\sigma}}{\spair{\targ'}{\sigma'}} \andalso
-  \bigstep{\strip{o}{\targ'}{\sigma'}}{\spair{v}{\sigma''}}
-}
-{\bigstep{
-  \strip{\text{Let }i\ o}{\targ}{\sigma}
-}{
-  \spair{v}{\sigma''}
-}}
+\semanticsrules
 
-\inferrule{E-Print}{
-  \bigstep{\strip{e}{\targ}{\sigma}}{\spair{v}{(M, L)}} \andalso
-}
-{\bigstep{
-  \strip{\text{Print }e}{\targ}{\sigma}
-}{
-  \spair{[]}{(M, L \texttt{ ++ } v)}
-}}
-
-\inferrule{E-Load}{
-  \bigstep{\strip{e}{\targ}{\sigma}}{\spair{v}{(M, L)}} \andalso
-}
-{\bigstep{
-  \strip{\text{Load }e}{\targ}{\sigma}
-}{
-  \spair{M[v]}{(M, L)}
-}}
-
-\inferrule{E-Alloc}{
-  \bigstep{\strip{e}{\targ}{\sigma}}{\spair{n}{(M, L)}} \andalso
-  $(M', p) = \operatorname{malloc}(M, n * \operatorname{sizeof}(\tau))$
-}
-{\bigstep{
-  \strip{\text{Alloc }e\ \tau}{\targ}{\sigma}
-}{
-  \spair{p}{(M', L)}
-}}
-
-\inferrule{E-Store}{
-  \bigstep{\strip{p}{\targ}{\sigma}}{\spair{v_p}{\sigma'}} \andalso
-  \bigstep{\strip{e}{\targ}{\sigma'}}{\spair{v_e}{(M, L)}} \andalso
-}
-{\bigstep{
-    \strip{\text{Store }p\ e}{\targ}{\sigma}
-  }{
-    \spair{[]}{(M[v_p\to v_e], L)}
-}}
-
-
-\inferrule{E-Single}{
-  \bigstep{\strip{e}{\targ}{\sigma}}{\spair{v}{\sigma'}}
-}
-{\bigstep{
-    \strip{\text{Single }e}{\targ}{\sigma}
-  }{
-    \spair{[v]}{\sigma'}
-}}
-
-
-\inferrule{E-ConcatSeq}{
-  \bigstep{\strip{e_1}{\targ}{\sigma}}{\spair{v_1}{\sigma'}} \andalso
-  \bigstep{\strip{e_2}{\targ}{\sigma'}}{\spair{v_2}{\sigma''}} \andalso
-}
-{\bigstep{
-    \strip{\text{Concat Sequential }e_1\ e_2}{\targ}{\sigma}
-  }{
-    \spair{v_1\texttt{ ++ }v_2}{\sigma''}
-}}
-
-
-
-\inferrule{E-DoWhileFalse}{
-  \bigstep{\strip{e_{in}}{\targ}{\sigma}}{\spair{\targ'}{\sigma'}} \andalso
-  \bigstep{\strip{e_{pred\_out}}{\targ'}{\sigma'}}{\spair{[\bot, v]}{\sigma''}}
-}
-{\bigstep{
-    \strip{\text{DoWhile }e_{in}\ e_{pred\_out}}{\targ}{\sigma}
-  }{
-    \spair{v}{\sigma''}
-}}
-
-
-\inferrule{E-DoWhileTrue}{
-  \bigstep{\strip{e_{in}}{\targ}{\sigma}}{\spair{\targ'}{\sigma'}} \andalso
-  \bigstep{\strip{e_{pred\_out}}{\targ'}{\sigma'}}{\spair{[\top, \targ'']}{\sigma''}} \andalso
-  \bigstep{\strip{\text{DoWhile } e_{in}\ e_{pred\_out}}{\targ''}{\sigma''}}{\spair{v}{\sigma'''}}
-}
-{\bigstep{
-    \strip{\text{DoWhile }e_{in}\ e_{pred\_out}}{\targ}{\sigma}
-  }{
-    \spair{v}{\sigma'''}
-}}
-
-
-  %% \caption{expr big-step semantics.}
-%% \end{figure}
-
-%% \begin{figure}%{\linewidth}
-%%   \begin{align*}
-%%     \denote{ \mathsf{Set} ~ ts } &= ts
-%%     & % \\
-%%     \denote{ \mathsf{Filter} ~ \mathit{filter} ~ \W } &=
-%%     \set{t \in \denote{ \W }}{\denote{ \mathit{filter} } (t) = true}
-%%     \\
-%%     \denote{ \mathsf{Union} ~ \W_1 ~ \W_2 } &=
-%%     \denote{ \W_1 }~\cup~\denote{ \W_2 } \hspace{8mm}
-%%     & % \\
-%%     \denote{ \mathsf{Plug} ~ \W_1 ~ \mathit{tgt} ~ \W_2 } &=
-%%       \bigcup_{e \in \denote{\W_1}}
-%%       \denote{ \plugsexp ~ e ~ \mathit{tgt} ~ \W_2 }
-%%   \end{align*}
-%%   \begin{align*}
-%%     \denote{ \plugsexp ~ (Atom ~ s) ~ \mathit{s} ~ \W } &=
-%%     \denote{ \W }
-%%     \\
-%%     \denote{ \plugsexp ~ (Atom ~ s) ~ \mathit{tgt} ~ \W } &=
-%%     \{Atom ~ s\} ~\mathsf{when} ~ s \neq \mathit{tgt}
-%%     \\
-%%     \denote{ \plugsexp ~ (List ~ s_1 ~ \ldots ~ s_n) ~ \mathit{tgt} ~ \W } &=
-%%     \set{List ~ t_1 ~ \ldots ~ t_n}{t_i \in \denote{ \plugsexp ~ s_i ~ \mathit{tgt} ~ \W }}
-%%   \end{align*}
-%%   \caption{\enumo workload semantics.}
-%%   \label{fig:denote-workload}
-%% \end{figure}
-
-%% \begin{figure}%{\linewidth}
-%%   \begin{align*}
-%%     \denote{\mathsf{MetricLt} ~ M ~ n}(t) &= \denote{ M } (t) < n  &
-%%     \denote{\mathsf{Contains} ~ p}(t) &=
-%%       \exists \sigma, \sigma(p) \in \mathsf{subterms}(t) \\
-%%       % includes(t, p) \\
-%%     \denote{\mathsf{MetricEq} ~ M ~ n}(t) &= \denote{ M } (t) = n  &
-%%     \denote{\mathsf{Canon} ~ \vec{a} ~ }(t) &= canon(\vec{a}, t) == t
-%%   \end{align*}
-%% \end{figure}
-
-
-%% \inferrule{T-While}{\texttt{$\Gamma$ $\vdash$ t$_1$ : Bool} \andalso \texttt{$\Gamma$ $\vdash$ t$_2$ : True}}{\texttt{$\Gamma$ $\vdash$ while t$_1$ do t$_2$: True}}
-
+\newpage

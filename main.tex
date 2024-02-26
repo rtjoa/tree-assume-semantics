@@ -11,10 +11,8 @@
 \usepackage{verbatim}
 \usepackage{verbatimbox}
 \usepackage{listings}
-\usepackage{geometry}[margin=1in]
 \usepackage{graphicx}\usepackage{graphics}
 \newcommand{\step}[2]{{\tt #1} $\longrightarrow$ {\tt #2}}
-\newcommand{\inferax}[2]{\infrule[#1]{\mbox{}}{\mbox{#2}}}
 
 % from enumo paper
 \usepackage{balance}
@@ -49,6 +47,12 @@
 \usepackage{multirow}
 \usepackage{fontawesome}
 
+\usepackage[
+  left=1in,
+  right=1in,
+  top=0.5in,
+  bottom=0.5in
+]{geometry}
 \begin{document}
 
 \include{macros}
