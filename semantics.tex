@@ -134,8 +134,8 @@ $\operatorname{malloc}$ takes a state and number of bytes $n$, finds a contiguou
 &\hspace{1.3em}\text{\color{gray}(this should be written as a fixpoint instead)}\\
 \denotef{\bop{Assume}{(\uop{InLet}{e_{in}})}{e}}{\targ,\tmem} &\eqdef
 \begin{cases}
-  \denotef{e}{\targ,\tmem} & \exists \targ', \tmem' . \; \denotefv{e_{in}}{\targ',\tmem'} = \targ \\
-  \mathrm{undefined} & \text{otherwise}
+  \denotef{e}{\targ,\tmem} & \exists \targ', \tmem' . \; \denotefv{e_{in}}{\targ',\tmem'} = \targ
+  %% \\ \mathrm{undefined} & \text{otherwise}
 \end{cases}\\
 %
 \denotef{\bop{Assume}{(\bop{InLoop}{e_{in}}{e_{po}})}{e}}{\targ,\tmem} &\eqdef
@@ -145,14 +145,13 @@ $\operatorname{malloc}$ takes a state and number of bytes $n$, finds a contiguou
       &\exists \targ', \tmem' . \; \denotefv{e_{in}}{\targ',\tmem'} = \targ\\
       &\lor \denotefv{\bop{Assume}{(\bop{InLoop}{e_{in}}{e_{po}})}{e}}{\targ',\tmem'} = \targ
     \end{aligned}
-    \\
-  \mathrm{undefined} & \text{otherwise}
+  %% \\ \mathrm{undefined} & \text{otherwise}
 \end{cases}\\
 %
 \denotef{\bop{Assume}{(\bop{AfterWrite}{e_p}{e_d})}{e}}{\targ,\tmem} &\eqdef
 \begin{cases}
-  \denotef{e}{\targ,\tmem} & \exists \targ', \tmem' . \; \denotefs{\bop{Write}{e_p}{e_d}}{\targ',\tmem'} = \tmem \\
-  \mathrm{undefined} & \text{otherwise}
+  \denotef{e}{\targ,\tmem} & \exists \targ', \tmem' . \; \denotefs{\bop{Write}{e_p}{e_d}}{\targ',\tmem'} = \tmem
+  %% \\ \mathrm{undefined} & \text{otherwise}
 \end{cases}\\
 \end{align*}
 
