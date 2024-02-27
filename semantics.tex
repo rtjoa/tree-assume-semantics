@@ -134,20 +134,20 @@ $\operatorname{malloc}$ takes a state and number of bytes $n$, finds a contiguou
    & v_{pred} = \top\\
 \end{cases}\\
 &\hspace{1.3em}\text{\color{gray}(this should be written as a fixpoint instead)}\\
-\denotef{\bop{Assume}{(\uop{InLet}{e_{in}})}{e}}{\targ,\tmem} &\eqdef
+\denotef{\bop{Context}{(\uop{InLet}{e_{in}})}{e}}{\targ,\tmem} &\eqdef
 \begin{cases}
   \denotef{e}{\targ,\tmem} & \exists \targ', \tmem' . \; \denotefv{e_{in}}{\targ',\tmem'} = \targ
   %% \\ \mathrm{undefined} & \text{otherwise}
 \end{cases}\\
 %
-\denotef{\bop{Assume}{(\bop{AfterWrite}{e_p}{e_d})}{e}}{\targ,\tmem} &\eqdef
+\denotef{\bop{Context}{(\bop{AfterWrite}{e_p}{e_d})}{e}}{\targ,\tmem} &\eqdef
 \begin{cases}
   \denotef{e}{\targ,\tmem} & \exists \targ', \tmem' . \; \denotefs{\bop{Write}{e_p}{e_d}}{\targ',\tmem'} = \tmem
   %% \\ \mathrm{undefined} & \text{otherwise}
 \end{cases}\\
 %
 %% \operatorname{possibleargs}(e_{in},e_{po}) &\eqdef \{\denotefv{e_{in}}{\targ,\tmem} \ |\  \targ \in \mathrm{Value}, \tmem \in \mathrm{State} \}\\
-%% \denotef{\bop{Assume}{(\bop{InLoop}{e_{in}}{e_{po}})}{e}}{\targ,\tmem} &\eqdef
+%% \denotef{\bop{Context}{(\bop{InLoop}{e_{in}}{e_{po}})}{e}}{\targ,\tmem} &\eqdef
 %% \begin{cases}
 %%   \denotef{e}{\targ,\tmem} &
 %%     \begin{aligned}
@@ -155,17 +155,17 @@ $\operatorname{malloc}$ takes a state and number of bytes $n$, finds a contiguou
 %%       &\denotefv{e_{in}}{\targ',\tmem'} = \targ \; \lor\\
 %%       &(\mathrm{let}\ (v_p, v_o) = \denotefv{e_{po}}{\targ',\tmem'} \mathrm{in}\\
 %%       &v_p = \top \land\\
-%%       & (v_o, \tmem') \in \operatorname{domain}(\denote{\bop{Assume}{(\bop{InLoop}{\mathrm{Arg}}{e_{po}})}{e}}))
+%%       & (v_o, \tmem') \in \operatorname{domain}(\denote{\bop{Context}{(\bop{InLoop}{\mathrm{Arg}}{e_{po}})}{e}}))
 %%     \end{aligned}
 %%   %% \\ \mathrm{undefined} & \text{otherwise}
 %% \end{cases}\\
-\denotef{\bop{Assume}{(\bop{InLoop}{e_{in}}{e_{po}})}{e}}{\targ,\tmem} &\eqdef
+\denotef{\bop{Context}{(\bop{InLoop}{e_{in}}{e_{po}})}{e}}{\targ,\tmem} &\eqdef
 \begin{cases}
   \denotef{e}{\targ,\tmem} &
     (\targ,\tmem) \in \operatorname{loop\_reachable}(e_{in},e_{po})
 \end{cases}
 %% \text{\color{gray}alternate version:}&\\
-%% \denotef{\bop{Assume}{(\bop{InLoop}{e_{in}}{e_{po}})}{e}}{\targ,\tmem} &\eqdef
+%% \denotef{\bop{Context}{(\bop{InLoop}{e_{in}}{e_{po}})}{e}}{\targ,\tmem} &\eqdef
 %% \begin{cases}
 %%   \denotef{e}{\targ,\tmem} &
 %%     \begin{aligned}
@@ -173,7 +173,7 @@ $\operatorname{malloc}$ takes a state and number of bytes $n$, finds a contiguou
 %%       &\denotefv{e_{in}}{\targ',\tmem'} = \targ \; \lor\\
 %%       &(\mathrm{let}\ (v_p, v_o) = \denotefv{e_{po}}{\targ',\tmem'} \mathrm{in}\\
 %%       &v_p = \top \land\\
-%%       & (v_o, \tmem') \in \operatorname{domain}(\denote{\bop{Assume}{(\bop{InLoop}{\mathrm{Arg}}{e_{po}})}{e}}))
+%%       & (v_o, \tmem') \in \operatorname{domain}(\denote{\bop{Context}{(\bop{InLoop}{\mathrm{Arg}}{e_{po}})}{e}}))
 %%     \end{aligned}
 %%   %% \\ \mathrm{undefined} & \text{otherwise}
 %% \end{cases}\\
@@ -304,27 +304,27 @@ A state is a pair $(M, L)$, containing memory and a print log.
   {\bop{DoWhile}{e_{in}}{e_{po}}}{\targ}{\tmem}
   {v}{\tmem'''}}
 
-\inferrule{E-AssumeInLet}{
+\inferrule{E-ContextInLet}{
   \easvs{e}{\targ}{\tmem}{v}{\tmem'} \andalso
   \exists\ \targ_2, \tmem_2, \tmem_3 .\;
     \easvs{e_{in}}{\targ_2}{\tmem_2}{\targ}{\tmem_3}}
 {\easvsd
-  {\bop{Assume}{(\uop{InLet}{e_{in}})}{e}}{\targ}{\tmem}
+  {\bop{Context}{(\uop{InLet}{e_{in}})}{e}}{\targ}{\tmem}
   {v}{\tmem'}}
 
-\inferrule{E-AssumeAfterWrite}{
+\inferrule{E-ContextAfterWrite}{
   \easvs{e}{\targ}{\tmem}{v}{\tmem'} \andalso
   \exists\ \targ_2, v_2, \tmem_2 .\;
     \easvs{\bop{Write}{e_p}{e_d}}{\targ_2}{\tmem_2}{v_2}{\tmem_3}}
 {\easvsd
-  {\bop{Assume}{(\bop{AfterWrite}{e_p}{e_d})}{e}}{\targ}{\tmem}
+  {\bop{Context}{(\bop{AfterWrite}{e_p}{e_d})}{e}}{\targ}{\tmem}
   {v}{\tmem'}}
 
-\inferrule{E-AssumeInLoop}{
+\inferrule{E-ContextInLoop}{
   \easvs{e}{\targ}{\tmem}{v}{\tmem'} \andalso
   (\targ, \tmem) \in \operatorname{loop\_reachable}(e_{in}, e_{out})}
 {\easvsd
-  {\bop{Assume}{(\bop{InLoop}{e_{in}}{e_{po}})}{e}}{\targ}{\tmem}
+  {\bop{Context}{(\bop{InLoop}{e_{in}}{e_{po}})}{e}}{\targ}{\tmem}
   {v}{\tmem'}}
 
 \newpage
@@ -376,7 +376,7 @@ A state is a pair $(M, L)$, containing memory and a print log.
       \alt If <expr> <expr> <expr>
       \alt Let <expr> <expr>
       \alt DoWhile <expr> <expr>
-      \alt Assume <assumption> <expr>
+      \alt Context <assumption> <expr>
     \end{grammar}%
     \end{minipage}%
 %%   \caption{expr abstract syntax.}
