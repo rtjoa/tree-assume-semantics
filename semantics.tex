@@ -315,7 +315,7 @@ A state is a pair $(M, L)$, containing memory and a print log.
 \inferrule{E-ContextAfterWrite}{
   \easvs{e}{\targ}{\tmem}{v}{\tmem'} \andalso
   \exists\ \targ_2, v_2, \tmem_2 .\;
-    \easvs{\bop{Write}{e_p}{e_d}}{\targ_2}{\tmem_2}{v_2}{\tmem_3}}
+    \easvs{\bop{Write}{e_p}{e_d}}{\targ_2}{\tmem_2}{v_2}{\tmem}}
 {\easvsd
   {\bop{Context}{(\bop{AfterWrite}{e_p}{e_d})}{e}}{\targ}{\tmem}
   {v}{\tmem'}}
