@@ -162,7 +162,7 @@ $\operatorname{malloc}$ takes a state and number of bytes $n$, finds a contiguou
 \denotef{\bop{Context}{(\bop{InLoop}{e_{in}}{e_{po}})}{e}}{\targ,\tmem} &\eqdef
 \begin{cases}
   \denotef{e}{\targ,\tmem} &
-    (\targ,\tmem) \in \operatorname{loop\_reachable}(e_{in},e_{po})
+    \exists  \tmem' . \; (\targ,\tmem') \in  \operatorname{loop\_reachable}(e_{in},e_{po})
 \end{cases}
 %% \text{\color{gray}alternate version:}&\\
 %% \denotef{\bop{Context}{(\bop{InLoop}{e_{in}}{e_{po}})}{e}}{\targ,\tmem} &\eqdef
@@ -322,7 +322,8 @@ A state is a pair $(M, L)$, containing memory and a print log.
 
 \inferrule{E-ContextInLoop}{
   \easvs{e}{\targ}{\tmem}{v}{\tmem'} \andalso
-  (\targ, \tmem) \in \operatorname{loop\_reachable}(e_{in}, e_{out})}
+  \exists\ \tmem_2 .\;
+  (\targ, \tmem_2) \in \operatorname{loop\_reachable}(e_{in}, e_{out})}
 {\easvsd
   {\bop{Context}{(\bop{InLoop}{e_{in}}{e_{po}})}{e}}{\targ}{\tmem}
   {v}{\tmem'}}
